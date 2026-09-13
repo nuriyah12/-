@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>มาเล่นเกมพอลิเมอร์ที่เรารักเถอะ</title>
+<style>
+body{font-family:Tahoma,sans-serif;margin:0;background:linear-gradient(#7ddcff,#b8f4a5);min-height:100vh}
+main{max-width:900px;margin:auto;padding:24px;text-align:center}.card{background:#fff;border-radius:24px;padding:25px;box-shadow:0 6px 20px #0002}
+h1{color:#ed4b8a;font-size:42px}.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+button{border:0;border-radius:15px;padding:15px;font-size:20px;font-weight:bold;cursor:pointer}.tile{background:#a9783e;color:#fff;min-height:90px}.ans{display:block;width:100%;margin:10px 0;text-align:left;background:#f5c2dc}.start{background:#ffc333}
+#game,#quiz,#finish{display:none}.ok{color:green;font-size:25px}.bad{color:#d22;font-size:25px}
+</style></head><body><main>
+<section id="home" class="card"><h1>🌿 มาเล่นเกมพอลิเมอร์<br>ที่เรารักเถอะ 🌿</h1><p>เปิดแผ่นป้าย แล้วตอบคำถามเรื่องพอลิเมอร์</p><button class="start" onclick="start()">▶ เริ่มเกม</button></section>
+<section id="game" class="card"><h2>🎮 เปิดแผ่นป้าย</h2><p>คะแนน: <b id="score">0</b>/20</p><div class="grid" id="grid"></div></section>
+<section id="quiz" class="card"><h2 id="num"></h2><h3 id="q"></h3><div id="answers"></div><p id="msg"></p><button id="next" style="display:none" onclick="next()">เล่นต่อ ▶</button></section>
+<section id="finish" class="card"><h1>🏆 จบเกม!</h1><h2>คะแนนของคุณ <span id="final"></span>/20</h2><button class="start" onclick="start()">🔄 เล่นใหม่</button></section>
+</main><script>
+const qs=[
+["พอลิเมอร์คืออะไร?",["สารที่มีโมเลกุลขนาดเล็ก","สารที่เกิดจากมอนอเมอร์หลายโมเลกุลเชื่อมต่อกัน","สารที่มีแต่คาร์บอน","สารที่ละลายน้ำได้ทุกชนิด"],1],
+["หน่วยเล็กที่นำมาเชื่อมต่อเป็นพอลิเมอร์เรียกว่าอะไร?",["ไอโซเมอร์","มอนอเมอร์","โคพอลิเมอร์","พลาสติไซเซอร์"],1],
+["การเชื่อมต่อมอนอเมอร์จำนวนมากเป็นสายยาวเรียกว่าอะไร?",["การกลั่น","การระเหย","การเกิดพอลิเมอร์","การตกผลึก"],2],
+["ข้อใดเป็นพอลิเมอร์ธรรมชาติ?",["พอลิเอทิลีน","พอลิสไตรีน","เซลลูโลส","PVA"],2],
+["ข้อใดเป็นพอลิเมอร์สังเคราะห์?",["แป้ง","เซลลูโลส","ยางธรรมชาติ","พอลิสไตรีน"],3],
+["พอลิเมอร์จากมอนอเมอร์ชนิดเดียวเรียกว่าอะไร?",["โฮโมพอลิเมอร์","โคพอลิเมอร์","พลาสติกไซเซอร์","เทอร์มอเซต"],0],
+["พอลิเมอร์จากมอนอเมอร์ต่างชนิดตั้งแต่ 2 ชนิดเรียกว่าอะไร?",["โฮโมพอลิเมอร์","โคพอลิเมอร์","มอนอเมอร์","อีลาสโตเมอร์"],1],
+["โครงสร้างที่มีสายโซ่หลักและสายโซ่ย่อยเรียกว่าอะไร?",["แบบเส้นตรง","แบบกิ่ง","แบบร่างแห","แบบวงแหวน"],1],
+["โครงสร้างคล้ายตาข่ายเรียกว่าอะไร?",["แบบเส้นตรง","แบบกิ่ง","แบบร่างแห","แบบวงแหวน"],2],
+["การเติมสารเพื่อปรับปรุงสมบัติพอลิเมอร์เรียกว่าอะไร?",["การทำให้เป็นกรด","การเติมสารเติมแต่ง","การกลั่น","การตกผลึก"],1],
+["สารที่ช่วยให้พอลิเมอร์ยืดหยุ่นขึ้นคืออะไร?",["พลาสติไซเซอร์","มอนอเมอร์","ตัวเร่งปฏิกิริยา","ตัวทำละลาย"],0],
+["เหตุผลสำคัญของการเติมสารเติมแต่งคืออะไร?",["เปลี่ยนเป็นธาตุ","ปรับปรุงสมบัติให้เหมาะกับการใช้งาน","ทำให้มวลเป็นศูนย์","เปลี่ยนเป็นมอนอเมอร์เสมอ"],1],
+["พอลิเมอร์ที่หลอมและขึ้นรูปใหม่ได้เมื่อให้ความร้อนคืออะไร?",["เทอร์มอพลาสติก","เทอร์มอเซต","ร่างแหทุกชนิด","เซลลูโลสเท่านั้น"],0],
+["ข้อใดเป็นตัวอย่างเทอร์มอพลาสติก?",["พอลิเอทิลีน","ยางที่เชื่อมขวางแล้ว","พอลิเมอร์ร่างแห","เรซินเทอร์มอเซต"],0],
+["พอลิเมอร์ที่ไม่สามารถหลอมขึ้นรูปใหม่ได้ง่ายเรียกว่าอะไร?",["เทอร์มอพลาสติก","เทอร์มอเซต","โคพอลิเมอร์","มอนอเมอร์"],1],
+["เซลลูโลสทำปฏิกิริยากับกรดแอซีติกและกรดซัลฟิวริกเพื่อผลิตอะไร?",["เซลลูโลสแอซีเตต","ไคโตซาน","พอลิสไตรีน","พอลิเอทิลีน"],0],
+["ไคโตซานเตรียมได้จากสารใด?",["เซลลูโลส","ไคติน","สไตรีน","เอทีน"],1],
+["PVA ผลิตได้จากพอลิเมอร์ชนิดใด?",["PVAc","พอลิสไตรีน","พอลิเอทิลีน","พอลิเอไมด์"],0],
+["ข้อใดกล่าวถูกต้องเกี่ยวกับการใช้ผลิตภัณฑ์พอลิเมอร์?",["ทุกชนิดย่อยสลายง่าย","ไม่ต้องคำนึงถึงการกำจัด","ควรเลือกใช้และกำจัดอย่างเหมาะสมเพื่อลดผลกระทบต่อสิ่งแวดล้อม","ควรใช้พลาสติกใช้ครั้งเดียวมากที่สุด"],2],
+["ข้อใดเป็นพอลิเมอร์ธรรมชาติทั้งหมด?",["แป้ง เซลลูโลส ยางธรรมชาติ","พอลิเอทิลีน พอลิสไตรีน ไคติน","พอลิเอทิลีน เซลลูโลส พอลิสไตรีน","PVA พอลิเอทิลีน ไคโตซาน"],0]
+];
+let score=0,i=0,done=new Set();
+function show(id){["home","game","quiz","finish"].forEach(x=>document.getElementById(x).style.display=x==id?"block":"none")}
+function start(){score=0;done=new Set();document.getElementById("score").textContent=0;grid.innerHTML="";qs.forEach((_,n)=>{let b=document.createElement("button");b.className="tile";b.textContent=n+1;b.onclick=()=>{if(!done.has(n)){done.add(n);i=n;quiz()}};grid.appendChild(b)});show("game")}
+function quiz(){show("quiz");num.textContent="ข้อ "+(i+1)+" / 20";q.textContent=qs[i][0];msg.textContent="";next.style.display="none";answers.innerHTML="";qs[i][1].forEach((a,n)=>{let b=document.createElement("button");b.className="ans";b.textContent=["ก","ข","ค","ง"][n]+". "+a;b.onclick=()=>answer(n,b);answers.appendChild(b)})}
+function answer(n,b){document.querySelectorAll(".ans").forEach(x=>x.disabled=true);if(n==qs[i][2]){score++;msg.textContent="✅ เก่งมาก! คุณตอบถูก 👏";msg.className="ok"}else{msg.textContent="❌ ลองอีกครั้ง";msg.className="bad";document.querySelectorAll(".ans")[qs[i][2]].style.outline="4px solid green"}document.getElementById("score").textContent=score;next.style.display="inline-block"}
+function next(){if(done.size==20){final.textContent=score;show("finish")}else show("game")}
+</script></body></html>
